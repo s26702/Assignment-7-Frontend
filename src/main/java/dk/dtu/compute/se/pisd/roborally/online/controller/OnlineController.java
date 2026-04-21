@@ -48,15 +48,28 @@ public class OnlineController {
     public void signIn(String name) {
         // FIXME the 4 below is a bit arbitray and should be a constant defines
         //       somewhere in the code or a configuration file!
-        if (name.length() >= 4) {
-            // TODO Assignment 7b: make sure that the user with the given name
-            //      exist in the backend; and make sure that you set the user
-            //      returened by the backend (with the correct uid) is added
-            //      as onLineUser in this controller! (NOT the once created
-            //      in the code below!)
-            User user = new User();
-            user.setName(name);
-            setOnlineUser(user);
+        if (name != null && name.length() >= 4) {
+            try {
+                List<User> users = restClient.get()
+                        .uri(uriBuilder -> uriBuilder
+                                .path("/users")
+                                .queryParam("name", name)
+                                .build())
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<List<User>>() {});
+
+                if (users != null && !users.isEmpty()) {
+                    setOnlineUser(users.get(0));
+                } else {
+                    setOnlineUser(null);
+                }
+
+            } catch (Exception e) {
+                setOnlineUser(null);
+                e.printStackTrace();
+            }
+        } else {
+            setOnlineUser(null);
         }
     }
 
