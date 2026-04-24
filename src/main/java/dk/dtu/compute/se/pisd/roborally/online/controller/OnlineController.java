@@ -179,7 +179,7 @@ public class OnlineController {
 
     public void createGame(Game game) {
         if (!appController.isGameRunning() && onlineState.getSignedInUser() != null && gameSelectionOn) {
-            
+
             try {
                 restClient.post().uri("game/game").body(game).retrieve().body(Game.class);
 
