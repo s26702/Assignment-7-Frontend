@@ -16,6 +16,8 @@ module roborally {
 
     requires com.fasterxml.jackson.databind;
 
+    requires java.net.http;
+
     exports dk.dtu.compute.se.pisd.roborally;
 
     opens dk.dtu.compute.se.pisd.roborally.online.model;
