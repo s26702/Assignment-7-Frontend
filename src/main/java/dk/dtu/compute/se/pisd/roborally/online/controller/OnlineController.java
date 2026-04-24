@@ -126,13 +126,15 @@ public class OnlineController {
 
     public void refreshGames() {
         try {
-            // TODO Assignment 7b: Obtain the list of all games from the backend!
+            List<Game> games = restClient.get().uri("game/game").retrieve().
+                    body(new ParameterizedTypeReference<List<Game>>() {});
+
+            onlineState.setOpenGames(games);
             // TODO Assignment 7c/7e: And at some later point, this should only
             //      return the games open for registration (not started yet).
-            List<Game> games = new ArrayList<Game>(); // For now this list is empty
-            onlineState.setOpenGames(games);
         } catch (Exception e) {
             onlineState.setOpenGames(null);
+            e.printStackTrace();
         }
     }
 
@@ -177,12 +179,10 @@ public class OnlineController {
 
     public void createGame(Game game) {
         if (!appController.isGameRunning() && onlineState.getSignedInUser() != null && gameSelectionOn) {
-
-
+            
             try {
+                restClient.post().uri("game/game").body(game).retrieve().body(Game.class);
 
-                // TODO Assignment 7b: Create the game (in the backend) with the config information
-                //      provided in the game configuration
                 // TODO Assignment 7c: Extend the game creation so that the currently signed in user
                 //      is the owener of the game, which should also be registered as the first
                 //      player of the game
