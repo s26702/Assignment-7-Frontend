@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 public class OnlineController {
 
@@ -177,15 +178,32 @@ public class OnlineController {
         }
     }
 
+
+    // TODO Assignment 7c: Extend the game creation so that the currently signed in user
+    //      is the owener of the game, which should also be registered as the first
+    //      player of the game
     public void createGame(Game game) {
         if (!appController.isGameRunning() && onlineState.getSignedInUser() != null && gameSelectionOn) {
 
             try {
-                restClient.post().uri("game/game").body(game).retrieve().body(Game.class);
 
-                // TODO Assignment 7c: Extend the game creation so that the currently signed in user
-                //      is the owener of the game, which should also be registered as the first
-                //      player of the game
+                User signedIn = onlineState.getSignedInUser();
+                if(signedIn == null) return;
+                game.setOwner(signedIn);
+
+                Game createdGame = restClient.post().uri("game/game").body(game).retrieve().body(Game.class);
+
+                Player player = new Player();
+                player.setUser(signedIn);
+                player.setName(signedIn.getName());
+                player.setGame(createdGame);
+
+                restClient.post().
+                        uri("/player").
+                        body(player).
+                        retrieve().body(Player.class);
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -199,13 +217,36 @@ public class OnlineController {
         appDialogs.createNewGame();
     }
 
+
+
+
+
+
+    // TODO Assignment 7c: add the currently active user as a Player for
+    //      the given game if this user is not a player yet and if there
+    //      is still room for a player. If so post his to the backend,
+    //      and check whether this was successfull
     public void joinGame(Game game) {
         try {
+        Player player = new Player();
+        User signedIn = onlineState.getSignedInUser();
+        if(signedIn == null ||
+                game.getPlayers().size() +1 > game.getMaxPlayers()) return;
 
-            // TODO Assignment 7c: add the currently active user as a Player for
-            //      the given game if this user is not a player yet and if there
-            //      is still room for a player. If so post his to the backend,
-            //      and check whether this was successfull
+        for(Player p: game.getPlayers()){
+            if(signedIn.getUid() == p.getUser().getUid()) return;
+        }
+
+        player.setName(signedIn.getName());
+        player.setUser(signedIn);
+        player.setGame(game);
+        restClient.post().
+                    uri("/player").
+                        body(player).
+                            retrieve().body(Player.class);
+
+
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -239,21 +280,36 @@ public class OnlineController {
         }
     }
 
+
+
+
+    // TODO Assignment 7c: this method should return true if the
+    //      currently active user is a player of the game
     public boolean userInGame(Game game) {
+        User signedIn = onlineState.getSignedInUser();
+        if(signedIn ==null) return false;
 
-        // TODO Assignment 7c: this method should return true if the
-        //      currently active user is a player of the game
 
+        for(Player p : game.getPlayers()){
+            if (signedIn.getUid() == p.getUser().getUid()) return true;
+        }
         return false;
     }
 
+
+
+    // TODO Assignment 7c: this method should return true
+    //      if the currently active user the owner of the given game
     public boolean userOwnsGame(Game game) {
+        User signedIn = onlineState.getSignedInUser();
+        User owner = game.getOwner();
 
-        // TODO Assignment 7c: this method should return true
-        //      if the currently active user the owner of the given game
+        if(signedIn ==null || owner ==null) return false;
 
-        return false;
-    }
+
+        if(owner.getUid() == signedIn.getUid()) return true;
+        else return false;
+    } 
 
     private void startGame(Game game) {
         // TODO Assignment 7e: creation of the board should eventually depend
