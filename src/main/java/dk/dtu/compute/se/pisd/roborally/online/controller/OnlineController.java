@@ -309,7 +309,7 @@ public class OnlineController {
 
         if(owner.getUid() == signedIn.getUid()) return true;
         else return false;
-    } 
+    }
 
     private void startGame(Game game) {
         // TODO Assignment 7e: creation of the board should eventually depend
