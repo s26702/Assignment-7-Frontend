@@ -107,9 +107,6 @@ public class OnlineController {
         }
     }
 
-    // TODO Assignment 7c: you might want to implement a method of signing up
-    //      (registering) a new user here!
-
     public void setOnlineUser(User user) {
         if (!appController.isGameRunning() && !gameSelectionOn) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -179,9 +176,6 @@ public class OnlineController {
     }
 
 
-    // TODO Assignment 7c: Extend the game creation so that the currently signed in user
-    //      is the owener of the game, which should also be registered as the first
-    //      player of the game
     public void createGame(Game game) {
         if (!appController.isGameRunning() && onlineState.getSignedInUser() != null && gameSelectionOn) {
 
@@ -219,13 +213,6 @@ public class OnlineController {
 
 
 
-
-
-
-    // TODO Assignment 7c: add the currently active user as a Player for
-    //      the given game if this user is not a player yet and if there
-    //      is still room for a player. If so post his to the backend,
-    //      and check whether this was successfull
     public void joinGame(Game game) {
         try {
         Player player = new Player();
@@ -244,7 +231,6 @@ public class OnlineController {
                     uri("/player").
                         body(player).
                             retrieve().body(Player.class);
-
 
 
 
@@ -271,7 +257,7 @@ public class OnlineController {
         try {
 
             // TODO Assignment 7d: delete the given game from the games
-            //      in the backend
+            //      in the backendZ
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -283,8 +269,6 @@ public class OnlineController {
 
 
 
-    // TODO Assignment 7c: this method should return true if the
-    //      currently active user is a player of the game
     public boolean userInGame(Game game) {
         User signedIn = onlineState.getSignedInUser();
         if(signedIn ==null) return false;
@@ -296,10 +280,6 @@ public class OnlineController {
         return false;
     }
 
-
-
-    // TODO Assignment 7c: this method should return true
-    //      if the currently active user the owner of the given game
     public boolean userOwnsGame(Game game) {
         User signedIn = onlineState.getSignedInUser();
         User owner = game.getOwner();
