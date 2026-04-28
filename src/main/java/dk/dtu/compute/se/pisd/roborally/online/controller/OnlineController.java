@@ -257,9 +257,20 @@ public class OnlineController {
 
     public void leaveGame(Game game) {
         try {
-            // TODO Assignment 7d: delete the currently active user as a player
-            //      for the given game (in the backend)
+            User signedIn = onlineState.getSignedInUser();
+            if (signedIn == null || game == null || game.getPlayers() == null) return;
 
+            for (Player player : game.getPlayers()) {
+                if (player.getUser() != null &&
+                        player.getUser().getUid() == signedIn.getUid()) {
+
+                    restClient.delete()
+                            .uri("/player/{id}", player.getUid())
+                            .retrieve()
+                            .toBodilessEntity();
+                    break;
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -270,8 +281,13 @@ public class OnlineController {
     public void deleteGame(Game game) {
         try {
 
-            // TODO Assignment 7d: delete the given game from the games
-            //      in the backend
+            if (game == null) return;
+
+            restClient.delete()
+                    .uri("/game/{id}", game.getUid())
+                    .retrieve()
+                    .toBodilessEntity();
+
 
         } catch (Exception e) {
             e.printStackTrace();
