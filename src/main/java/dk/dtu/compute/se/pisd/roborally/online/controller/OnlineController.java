@@ -254,7 +254,8 @@ public class OnlineController {
             selectGame();
         }
     }
-
+    // TODO Assignment 7d: delete the currently active user as a player
+    //      for the given game (in the backend)
     public void leaveGame(Game game) {
         try {
             User signedIn = onlineState.getSignedInUser();
@@ -278,6 +279,8 @@ public class OnlineController {
         }
     }
 
+    // TODO Assignment 7d: delete the given game from the games
+    //      in the backend
     public void deleteGame(Game game) {
         try {
 
