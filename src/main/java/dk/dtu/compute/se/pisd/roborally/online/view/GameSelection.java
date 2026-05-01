@@ -17,6 +17,7 @@ public class GameSelection extends BorderPane {
 
         this.setMinSize(GamesView.width, GamesView.height);
         this.setPrefSize(GamesView.width, GamesView.height);
+        this.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         Label signedInUser = new Label("You are signed in as " + onlineController.onlineState.getSignedInUser().getName());
 
@@ -60,6 +61,7 @@ public class GameSelection extends BorderPane {
         gameList.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         gameList.setMinSize(GamesView.width, GamesView.height - 45);
         gameList.setPrefSize(GamesView.width, GamesView.height - 45);
+        gameList.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         this.setTop(top);
         this.setCenter(gameList);
