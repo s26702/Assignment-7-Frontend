@@ -14,6 +14,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 
+import java.util.List;
+
 public class GamesView extends GridPane {
 
     public static final int width = 640;
@@ -36,7 +38,13 @@ public class GamesView extends GridPane {
     private void update() {
         try {
             int i = 0;
-            for (Game game: onlineController.onlineState.getOpenGames() ) {
+            List<Game> openGames = onlineController.onlineState.getOpenGames();
+            if (openGames == null || openGames.isEmpty()) {
+                this.add(new Label("No open games."), 0, 0);
+                return;
+            }
+
+            for (Game game: openGames ) {
 
                 TextFlow gameInfo = new TextFlow();
 
@@ -46,11 +54,22 @@ public class GamesView extends GridPane {
                                 ", max: " + game.getMaxPlayers() + ")" );
                 gameInfo.getChildren().add(gameName);
 
-                // TODO Assignment 7c: Update the detailed description of the game
-                //      with game owner and  all players who joined.
-                for (Player player: game.getPlayers()) {
-                    Text playerInfo = new Text("\n  Player " + player.getName()
-                            /* + " (" + player.getUser().getName() + ")" */ );
+                // Add owner information
+                if (game.getOwner() != null) {
+                    Text ownerInfo = new Text("\nOwner: " + game.getOwner().getName());
+                    gameInfo.getChildren().add(ownerInfo);
+                }
+
+                // Add players
+                List<Player> players = game.getPlayers() == null ? List.of() : game.getPlayers();
+                for (Player player : players) {
+                    String playerName = player.getName() != null ? player.getName() : "Unknown";
+
+                    String userName = (player.getUser() != null && player.getUser().getName() != null)
+                            ? player.getUser().getName()
+                            : "Unknown user";
+
+                    Text playerInfo = new Text("\n  Player: " + playerName + " (" + userName + ")");
                     gameInfo.getChildren().add(playerInfo);
                 }
                 gameInfo.setTextAlignment(TextAlignment.LEFT);
@@ -65,7 +84,7 @@ public class GamesView extends GridPane {
                         // probably not needed since joinGame should catch possible exceptions
                     }
                 });
-                if (game.getPlayers().size() >= game.getMaxPlayers() || onlineController.userInGame(game)) {
+                if (players.size() >= game.getMaxPlayers() || onlineController.userInGame(game)) {
                     joinButton.setDisable(true);
                 } else {
                     joinButton.setDisable(false);
@@ -87,8 +106,8 @@ public class GamesView extends GridPane {
 
                 Button startButton = new Button("Start");
                 startButton.setOnAction( e -> onlineController.gameSelected(game) );
-                if (game.getMinPlayers() <= game.getPlayers().size() &&
-                        game.getMaxPlayers() >= game.getPlayers().size() &&
+                if (game.getMinPlayers() <= players.size() &&
+                        game.getMaxPlayers() >= players.size() &&
                         onlineController.userInGame(game)) {
                     startButton.setDisable(false);
                 } else {

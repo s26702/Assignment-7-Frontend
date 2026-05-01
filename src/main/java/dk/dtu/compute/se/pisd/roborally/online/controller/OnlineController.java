@@ -5,16 +5,15 @@ import dk.dtu.compute.se.pisd.roborally.controller.GameController;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.online.model.*;
 import dk.dtu.compute.se.pisd.roborally.online.view.AppDialogs;
+import com.fasterxml.jackson.databind.JsonNode;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 public class OnlineController {
 
@@ -53,7 +52,7 @@ public class OnlineController {
             try {
                 List<User> users = restClient.get()
                         .uri(uriBuilder -> uriBuilder
-                                .path("/user/search")
+                                .path("user/search")
                                 .queryParam("name", name)
                                 .build())
                         .retrieve()
@@ -124,8 +123,8 @@ public class OnlineController {
 
     public void refreshGames() {
         try {
-            List<Game> games = restClient.get().uri("game/game").retrieve().
-                    body(new ParameterizedTypeReference<List<Game>>() {});
+            JsonNode response = restClient.get().uri("game/game").retrieve().body(JsonNode.class);
+            List<Game> games = readGames(response);
 
             onlineState.setOpenGames(games);
             // TODO Assignment 7c/7e: And at some later point, this should only
@@ -163,14 +162,13 @@ public class OnlineController {
             appController.roboRally.createGameSelectionView(null);
             gameSelectionOn = false;
 
-            Game result = null;
             if (game != null) {
 
                 // TODO Assignment 7e: make sure the game is set to the active state
                 //      here and in the backend, so that no new players can sign up.
 
                 // Then show the game board and the game (with uid from backend) is then started
-                startGame(result);
+                startGame(game);
             }
         }
     }
@@ -185,18 +183,7 @@ public class OnlineController {
                 if(signedIn == null) return;
                 game.setOwner(signedIn);
 
-                Game createdGame = restClient.post().uri("game/game").body(game).retrieve().body(Game.class);
-
-                Player player = new Player();
-                player.setUser(signedIn);
-                player.setName(signedIn.getName());
-                player.setGame(createdGame);
-
-                restClient.post().
-                        uri("/player").
-                        body(player).
-                        retrieve().body(Player.class);
-
+                restClient.post().uri("game/game").body(game).retrieve().body(JsonNode.class);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -215,24 +202,24 @@ public class OnlineController {
 
     public void joinGame(Game game) {
         try {
-        Player player = new Player();
-        User signedIn = onlineState.getSignedInUser();
-        if(signedIn == null ||
-                game.getPlayers().size() +1 > game.getMaxPlayers()) return;
+            Player player = new Player();
+            User signedIn = onlineState.getSignedInUser();
+            List<Player> players = game.getPlayers() == null ? List.of() : game.getPlayers();
+            if(signedIn == null ||
+                    players.size() +1 > game.getMaxPlayers()) return;
 
-        for(Player p: game.getPlayers()){
-            if(signedIn.getUid() == p.getUser().getUid()) return;
-        }
+            for(Player p: players){
+                if(p.getUser() != null && signedIn.getUid() == p.getUser().getUid()) return;
+            }
 
-        player.setName(signedIn.getName());
-        player.setUser(signedIn);
-        player.setGame(game);
-        restClient.post().
-                    uri("/player").
-                        body(player).
-                            retrieve().body(Player.class);
-
-
+            player.setName(signedIn.getName());
+            player.setUser(signedIn);
+            player.setGame(game);
+            restClient.post()
+                    .uri("player")
+                    .body(player)
+                    .retrieve()
+                    .body(Player.class);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -252,7 +239,7 @@ public class OnlineController {
                         player.getUser().getUid() == signedIn.getUid()) {
 
                     restClient.delete()
-                            .uri("/player/{id}", player.getUid())
+                            .uri("player/{id}", player.getUid())
                             .retrieve()
                             .toBodilessEntity();
                     break;
@@ -270,18 +257,12 @@ public class OnlineController {
     public void deleteGame(Game game) {
         try {
 
-<<<<<<< HEAD
-            // TODO Assignment 7d: delete the given game from the games
-            //      in the backendZ
-=======
             if (game == null) return;
 
             restClient.delete()
-                    .uri("/game/{id}", game.getUid())
+                    .uri("game/game/{id}", game.getUid())
                     .retrieve()
                     .toBodilessEntity();
-
->>>>>>> 7be7750acb655b4cb8fe631a9da9fb4b663ca7fa
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -295,24 +276,24 @@ public class OnlineController {
 
     public boolean userInGame(Game game) {
         User signedIn = onlineState.getSignedInUser();
-        if(signedIn ==null) return false;
+        if(signedIn == null || game == null || game.getPlayers() == null) return false;
 
 
         for(Player p : game.getPlayers()){
-            if (signedIn.getUid() == p.getUser().getUid()) return true;
+            if (p.getUser() != null && signedIn.getUid() == p.getUser().getUid()) return true;
         }
         return false;
     }
 
     public boolean userOwnsGame(Game game) {
         User signedIn = onlineState.getSignedInUser();
+        if(signedIn == null || game == null) return false;
         User owner = game.getOwner();
 
-        if(signedIn ==null || owner ==null) return false;
+        if(owner == null) return false;
 
 
-        if(owner.getUid() == signedIn.getUid()) return true;
-        else return false;
+        return owner.getUid() == signedIn.getUid();
     }
 
     private void startGame(Game game) {
@@ -324,7 +305,8 @@ public class OnlineController {
         Board board = new Board(8,8);
         GameController gameController = new GameController(board);
         int i = 0;
-        for (Player player: game.getPlayers()) {
+        List<Player> players = game.getPlayers() == null ? List.of() : game.getPlayers();
+        for (Player player: players) {
             String name = player.getName();
             if (name == null) {
                 name = "Player " + (i + 1);
@@ -353,5 +335,88 @@ public class OnlineController {
     //      - ...
     //      But this is not part of the course 02324 and its assignment. This assignment is just
     //      about creating a game and different users joining it (coordinated by the backend).
+
+    private List<Game> readGames(JsonNode response) {
+        List<Game> games = new ArrayList<>();
+        if (response == null || response.isNull()) {
+            return games;
+        }
+
+        if (response.isArray()) {
+            for (JsonNode gameNode : response) {
+                games.add(readGame(gameNode));
+            }
+            return games;
+        }
+
+        JsonNode embedded = response.path("_embedded");
+        if (embedded.isObject()) {
+            embedded.fields().forEachRemaining(entry -> {
+                JsonNode values = entry.getValue();
+                if (values.isArray()) {
+                    for (JsonNode gameNode : values) {
+                        games.add(readGame(gameNode));
+                    }
+                }
+            });
+            return games;
+        }
+
+        games.add(readGame(response));
+        return games;
+    }
+
+    private Game readGame(JsonNode node) {
+        Game game = new Game();
+        game.setUid(node.path("uid").asLong());
+        game.setName(node.path("name").asText(null));
+        game.setMinPlayers(node.path("minPlayers").asInt());
+        game.setMaxPlayers(node.path("maxPlayers").asInt());
+
+        if (!node.path("ownerUid").isMissingNode() && !node.path("ownerUid").isNull()) {
+            User owner = new User();
+            owner.setUid(node.path("ownerUid").asLong());
+            owner.setName(node.path("ownerName").asText(null));
+            game.setOwner(owner);
+        }
+
+        List<Player> players = readPlayers(node.path("players"), game);
+        if (players.isEmpty() && !node.path("playerUids").isMissingNode()) {
+            for (JsonNode playerUid : node.path("playerUids")) {
+                Player player = new Player();
+                player.setUid(playerUid.asLong());
+                player.setGame(game);
+                players.add(player);
+            }
+        }
+        game.setPlayers(players);
+
+        return game;
+    }
+
+    private List<Player> readPlayers(JsonNode playersNode, Game game) {
+        List<Player> players = new ArrayList<>();
+        if (playersNode == null || !playersNode.isArray()) {
+            return players;
+        }
+
+        for (JsonNode playerNode : playersNode) {
+            Player player = new Player();
+            player.setUid(playerNode.path("uid").asLong());
+            player.setName(playerNode.path("name").asText(null));
+            player.setGame(game);
+
+            if (!playerNode.path("userUid").isMissingNode() && !playerNode.path("userUid").isNull()) {
+                User user = new User();
+                user.setUid(playerNode.path("userUid").asLong());
+                user.setName(playerNode.path("userName").asText(null));
+                player.setUser(user);
+            }
+
+            players.add(player);
+        }
+
+        return players;
+    }
 
 }
