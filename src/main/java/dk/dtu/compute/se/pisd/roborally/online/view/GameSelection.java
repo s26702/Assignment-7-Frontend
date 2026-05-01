@@ -28,7 +28,7 @@ public class GameSelection extends BorderPane {
         createGame.setMinHeight(30);
 
         Button refresh = new Button("Refresh");
-        refresh.setOnAction((e) -> onlineController.selectGame());
+        refresh.setOnAction((e) -> onlineController.refreshGameSelection());
         // also here, this is a quick hack
         refresh.setMinWidth(50);
         refresh.setMinHeight(30);

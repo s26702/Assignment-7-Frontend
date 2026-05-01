@@ -34,7 +34,9 @@ public class OnlineController {
     /**
      * The root URL of the backend for all the REST services.
      */
-    public final String ROBORALLY_BACKEND_URL = "http://localhost:8080/roborally/";
+    public final String ROBORALLY_BACKEND_URL = System.getProperty(
+            "roborally.backend.url",
+            "http://localhost:8080/roborally/");
 
     /**
      * The RestClient that can be used throughout all functions of this OnlineController
@@ -186,7 +188,13 @@ public class OnlineController {
      */
     public void refreshGames() {
         try {
-            String response = restClient.get().uri("game/game").retrieve().body(String.class);
+            String response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("game/game")
+                            .queryParam("_", System.currentTimeMillis())
+                            .build())
+                    .retrieve()
+                    .body(String.class);
             List<Game> games = readGames(response);
 
             onlineState.setOpenGames(games);
@@ -215,10 +223,18 @@ public class OnlineController {
                     "Sign in first!");
             alert.showAndWait();
         } else {
-            refreshGames();
             gameSelectionOn = true;
-            appController.roboRally.createGameSelectionView(this);
+            refreshGameSelection();
         }
+    }
+
+    /**
+     * Reloads the games from the backend and redraws the active selection view.
+     */
+    public void refreshGameSelection() {
+        refreshGames();
+        gameSelectionOn = true;
+        appController.roboRally.createGameSelectionView(this);
     }
 
     /**
@@ -273,8 +289,7 @@ public class OnlineController {
                 e.printStackTrace();
             }
 
-            // update the game select view (which should get the new game from the backend)
-            selectGame();
+            refreshGameSelection();
         }
     }
 
@@ -323,7 +338,7 @@ public class OnlineController {
         } catch (Exception e) {
             showInfo("Cannot join game", "You cannot join this game.");
         } finally {
-            selectGame();
+            refreshGameSelection();
         }
     }
 
@@ -366,7 +381,7 @@ public class OnlineController {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            selectGame();
+            refreshGameSelection();
         }
     }
 
@@ -388,7 +403,7 @@ public class OnlineController {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            selectGame();
+            refreshGameSelection();
         }
     }
 
