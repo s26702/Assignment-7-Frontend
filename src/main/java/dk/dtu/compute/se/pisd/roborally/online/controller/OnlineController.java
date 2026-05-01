@@ -5,7 +5,9 @@ import dk.dtu.compute.se.pisd.roborally.controller.GameController;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.online.model.*;
 import dk.dtu.compute.se.pisd.roborally.online.view.AppDialogs;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import org.springframework.core.ParameterizedTypeReference;
@@ -123,7 +125,7 @@ public class OnlineController {
 
     public void refreshGames() {
         try {
-            JsonNode response = restClient.get().uri("game/game").retrieve().body(JsonNode.class);
+            String response = restClient.get().uri("game/game").retrieve().body(String.class);
             List<Game> games = readGames(response);
 
             onlineState.setOpenGames(games);
@@ -183,7 +185,7 @@ public class OnlineController {
                 if(signedIn == null) return;
                 game.setOwner(signedIn);
 
-                restClient.post().uri("game/game").body(game).retrieve().body(JsonNode.class);
+                restClient.post().uri("game/game").body(game).retrieve().toBodilessEntity();
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -219,7 +221,7 @@ public class OnlineController {
                     .uri("player")
                     .body(player)
                     .retrieve()
-                    .body(Player.class);
+                    .toBodilessEntity();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -336,55 +338,70 @@ public class OnlineController {
     //      But this is not part of the course 02324 and its assignment. This assignment is just
     //      about creating a game and different users joining it (coordinated by the backend).
 
-    private List<Game> readGames(JsonNode response) {
+    private List<Game> readGames(String response) {
         List<Game> games = new ArrayList<>();
-        if (response == null || response.isNull()) {
+        if (response == null || response.isBlank()) {
             return games;
         }
 
+        JsonElement root = JsonParser.parseString(response);
+        if (root == null || root.isJsonNull()) {
+            return games;
+        }
+
+        readGames(root, games);
+        return games;
+    }
+
+    private void readGames(JsonElement response, List<Game> games) {
         if (response.isArray()) {
-            for (JsonNode gameNode : response) {
+            for (JsonElement gameNode : response.getAsJsonArray()) {
                 games.add(readGame(gameNode));
             }
-            return games;
+            return;
         }
 
-        JsonNode embedded = response.path("_embedded");
-        if (embedded.isObject()) {
-            embedded.fields().forEachRemaining(entry -> {
-                JsonNode values = entry.getValue();
-                if (values.isArray()) {
-                    for (JsonNode gameNode : values) {
+        if (!response.isJsonObject()) {
+            return;
+        }
+
+        JsonObject object = response.getAsJsonObject();
+        if (object.has("_embedded") && object.get("_embedded").isJsonObject()) {
+            JsonObject embedded = object.getAsJsonObject("_embedded");
+            embedded.entrySet().forEach(entry -> {
+                JsonElement values = entry.getValue();
+                if (values.isJsonArray()) {
+                    for (JsonElement gameNode : values.getAsJsonArray()) {
                         games.add(readGame(gameNode));
                     }
                 }
             });
-            return games;
+            return;
         }
 
         games.add(readGame(response));
-        return games;
     }
 
-    private Game readGame(JsonNode node) {
+    private Game readGame(JsonElement element) {
+        JsonObject node = element.getAsJsonObject();
         Game game = new Game();
-        game.setUid(node.path("uid").asLong());
-        game.setName(node.path("name").asText(null));
-        game.setMinPlayers(node.path("minPlayers").asInt());
-        game.setMaxPlayers(node.path("maxPlayers").asInt());
+        game.setUid(readLong(node, "uid"));
+        game.setName(readString(node, "name"));
+        game.setMinPlayers(readInt(node, "minPlayers"));
+        game.setMaxPlayers(readInt(node, "maxPlayers"));
 
-        if (!node.path("ownerUid").isMissingNode() && !node.path("ownerUid").isNull()) {
+        if (hasValue(node, "ownerUid")) {
             User owner = new User();
-            owner.setUid(node.path("ownerUid").asLong());
-            owner.setName(node.path("ownerName").asText(null));
+            owner.setUid(readLong(node, "ownerUid"));
+            owner.setName(readString(node, "ownerName"));
             game.setOwner(owner);
         }
 
-        List<Player> players = readPlayers(node.path("players"), game);
-        if (players.isEmpty() && !node.path("playerUids").isMissingNode()) {
-            for (JsonNode playerUid : node.path("playerUids")) {
+        List<Player> players = readPlayers(node.get("players"), game);
+        if (players.isEmpty() && node.has("playerUids") && node.get("playerUids").isJsonArray()) {
+            for (JsonElement playerUid : node.getAsJsonArray("playerUids")) {
                 Player player = new Player();
-                player.setUid(playerUid.asLong());
+                player.setUid(playerUid.getAsLong());
                 player.setGame(game);
                 players.add(player);
             }
@@ -394,22 +411,23 @@ public class OnlineController {
         return game;
     }
 
-    private List<Player> readPlayers(JsonNode playersNode, Game game) {
+    private List<Player> readPlayers(JsonElement playersNode, Game game) {
         List<Player> players = new ArrayList<>();
-        if (playersNode == null || !playersNode.isArray()) {
+        if (playersNode == null || playersNode.isJsonNull() || !playersNode.isJsonArray()) {
             return players;
         }
 
-        for (JsonNode playerNode : playersNode) {
+        for (JsonElement playerElement : playersNode.getAsJsonArray()) {
+            JsonObject playerNode = playerElement.getAsJsonObject();
             Player player = new Player();
-            player.setUid(playerNode.path("uid").asLong());
-            player.setName(playerNode.path("name").asText(null));
+            player.setUid(readLong(playerNode, "uid"));
+            player.setName(readString(playerNode, "name"));
             player.setGame(game);
 
-            if (!playerNode.path("userUid").isMissingNode() && !playerNode.path("userUid").isNull()) {
+            if (hasValue(playerNode, "userUid")) {
                 User user = new User();
-                user.setUid(playerNode.path("userUid").asLong());
-                user.setName(playerNode.path("userName").asText(null));
+                user.setUid(readLong(playerNode, "userUid"));
+                user.setName(readString(playerNode, "userName"));
                 player.setUser(user);
             }
 
@@ -417,6 +435,22 @@ public class OnlineController {
         }
 
         return players;
+    }
+
+    private boolean hasValue(JsonObject object, String property) {
+        return object.has(property) && !object.get(property).isJsonNull();
+    }
+
+    private String readString(JsonObject object, String property) {
+        return hasValue(object, property) ? object.get(property).getAsString() : null;
+    }
+
+    private int readInt(JsonObject object, String property) {
+        return hasValue(object, property) ? object.get(property).getAsInt() : 0;
+    }
+
+    private long readLong(JsonObject object, String property) {
+        return hasValue(object, property) ? object.get(property).getAsLong() : 0;
     }
 
 }
