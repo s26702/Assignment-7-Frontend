@@ -16,6 +16,9 @@ import javafx.scene.text.TextFlow;
 
 import java.util.List;
 
+/**
+ * Shows the online games and the actions the current user can take for each game.
+ */
 public class GamesView extends GridPane {
 
     public static final int width = 640;
@@ -23,6 +26,12 @@ public class GamesView extends GridPane {
 
     private OnlineController onlineController;
 
+    /**
+     * Builds the game list view from the games currently stored in the online state.
+     *
+     * @param onlineController the controller used for game actions
+     * @param gameSelection the surrounding selection view
+     */
     public GamesView(OnlineController onlineController, GameSelection gameSelection) {
         this.onlineController = onlineController;
         this.setPadding(new Insets(5, 5, 5, 5));

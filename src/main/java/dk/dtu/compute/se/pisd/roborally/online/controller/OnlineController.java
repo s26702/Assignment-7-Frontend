@@ -17,6 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Handles the online part of RoboRally.
+ * It keeps the signed-in user, talks to the backend, and opens the game selection UI.
+ */
 public class OnlineController {
 
 
@@ -38,6 +42,11 @@ public class OnlineController {
      */
     private RestClient restClient;
 
+    /**
+     * Creates an online controller for the running app.
+     *
+     * @param appController the main application controller
+     */
     public OnlineController(AppController appController) {
         this.appController = appController;
         this.onlineState = new OnlineState();
@@ -47,6 +56,11 @@ public class OnlineController {
         this.appDialogs = new AppDialogs(this);
     }
 
+    /**
+     * Looks for a backend user with the given name and signs them in if one is found.
+     *
+     * @param name the user name typed by the player
+     */
     public void signIn(String name) {
         // FIXME the 4 below is a bit arbitray and should be a constant defines
         //       somewhere in the code or a configuration file!
@@ -75,6 +89,9 @@ public class OnlineController {
         }
     }
 
+    /**
+     * Opens the sign-in dialog when the app is ready for online actions.
+     */
     public void signIn() {
         if (appController.isGameRunning()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -93,6 +110,9 @@ public class OnlineController {
         }
     }
 
+    /**
+     * Signs out the current online user after asking for confirmation.
+     */
     public void signOut() {
         if (onlineState.getSignedInUser() != null) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -108,6 +128,11 @@ public class OnlineController {
         }
     }
 
+    /**
+     * Stores the current online user and shows a small status dialog.
+     *
+     * @param user the user to sign in, or {@code null} to sign out
+     */
     public void setOnlineUser(User user) {
         if (!appController.isGameRunning() && !gameSelectionOn) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -123,6 +148,9 @@ public class OnlineController {
         }
     }
 
+    /**
+     * Reloads the open games from the backend.
+     */
     public void refreshGames() {
         try {
             String response = restClient.get().uri("game/game").retrieve().body(String.class);
@@ -139,6 +167,9 @@ public class OnlineController {
 
     private boolean gameSelectionOn = false;
 
+    /**
+     * Shows the game selection screen for the signed-in user.
+     */
     public void selectGame() {
         if (appController.isGameRunning()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -159,6 +190,11 @@ public class OnlineController {
         }
     }
 
+    /**
+     * Starts the selected game locally, or closes the selection screen if no game was selected.
+     *
+     * @param game the game chosen by the user
+     */
     public void gameSelected(Game game) {
         if (!appController.isGameRunning() /* && onlineState.getSignedInUser() != null && gameSelectionOn */) {
             appController.roboRally.createGameSelectionView(null);
@@ -176,6 +212,11 @@ public class OnlineController {
     }
 
 
+    /**
+     * Creates a game on the backend with the signed-in user as owner.
+     *
+     * @param game the game details from the dialog
+     */
     public void createGame(Game game) {
         if (!appController.isGameRunning() && onlineState.getSignedInUser() != null && gameSelectionOn) {
 
@@ -196,12 +237,20 @@ public class OnlineController {
         }
     }
 
+    /**
+     * Opens the dialog for creating a new online game.
+     */
     public void createGame() {
         appDialogs.createNewGame();
     }
 
 
 
+    /**
+     * Adds the signed-in user to a game if there is room.
+     *
+     * @param game the game to join
+     */
     public void joinGame(Game game) {
         try {
             Player player = new Player();
@@ -229,8 +278,13 @@ public class OnlineController {
             selectGame();
         }
     }
-    // TODO Assignment 7d: delete the currently active user as a player
-    //      for the given game (in the backend)
+
+    /**
+     * Removes the signed-in user from a game.
+     * Owners get a clear error because they must delete the game instead.
+     *
+     * @param game the game to leave
+     */
     public void leaveGame(Game game) {
         try {
             User signedIn = onlineState.getSignedInUser();
@@ -264,8 +318,11 @@ public class OnlineController {
         }
     }
 
-    // TODO Assignment 7d: delete the given game from the games
-    //      in the backend
+    /**
+     * Deletes a game from the backend.
+     *
+     * @param game the game to delete
+     */
     public void deleteGame(Game game) {
         try {
 
@@ -286,6 +343,12 @@ public class OnlineController {
 
 
 
+    /**
+     * Checks whether the signed-in user is already listed as a player in a game.
+     *
+     * @param game the game to check
+     * @return {@code true} if the signed-in user is in the game
+     */
     public boolean userInGame(Game game) {
         User signedIn = onlineState.getSignedInUser();
         if(signedIn == null || game == null || game.getPlayers() == null) return false;
@@ -297,6 +360,12 @@ public class OnlineController {
         return false;
     }
 
+    /**
+     * Checks whether the signed-in user owns a game.
+     *
+     * @param game the game to check
+     * @return {@code true} if the signed-in user is the owner
+     */
     public boolean userOwnsGame(Game game) {
         User signedIn = onlineState.getSignedInUser();
         if(signedIn == null || game == null) return false;
