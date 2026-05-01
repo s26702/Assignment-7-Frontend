@@ -4,6 +4,7 @@ import dk.dtu.compute.se.pisd.roborally.online.controller.OnlineController;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
 public class GameSelection extends BorderPane {
@@ -48,10 +49,17 @@ public class GameSelection extends BorderPane {
         top.add(refresh, 2,0);
         top.add(close,4, 0);
 
-        Pane bottom  = new GamesView(onlineController, this);
+        Pane bottom = new GamesView(onlineController, this);
+        ScrollPane gameList = new ScrollPane(bottom);
+        gameList.setFitToWidth(true);
+        gameList.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        gameList.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        gameList.setPrefViewportHeight(GamesView.height - 50);
+        VBox.setVgrow(gameList, Priority.ALWAYS);
 
 
-        VBox vbox =  new VBox(top, bottom);
+        VBox vbox =  new VBox(top, gameList);
+        vbox.setPrefSize(GamesView.width, GamesView.height);
 
         this.getChildren().add(vbox);
     }
