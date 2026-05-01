@@ -4,6 +4,7 @@ import dk.dtu.compute.se.pisd.roborally.online.controller.OnlineController;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
 public class GameSelection extends BorderPane {
@@ -14,7 +15,9 @@ public class GameSelection extends BorderPane {
     public GameSelection (OnlineController onlineController) {
         this.onlineController = onlineController;
 
-        this.setPrefSize(GamesView.width,GamesView.height);
+        this.setMinSize(GamesView.width, GamesView.height);
+        this.setPrefSize(GamesView.width, GamesView.height);
+        this.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         Label signedInUser = new Label("You are signed in as " + onlineController.onlineState.getSignedInUser().getName());
 
@@ -48,12 +51,20 @@ public class GameSelection extends BorderPane {
         top.add(refresh, 2,0);
         top.add(close,4, 0);
 
-        Pane bottom  = new GamesView(onlineController, this);
+        Pane bottom = new GamesView(onlineController, this);
+        bottom.setMinWidth(GamesView.width - 20);
+        bottom.setPrefWidth(GamesView.width - 20);
 
+        ScrollPane gameList = new ScrollPane(bottom);
+        gameList.setFitToWidth(true);
+        gameList.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        gameList.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        gameList.setMinSize(GamesView.width, GamesView.height - 45);
+        gameList.setPrefSize(GamesView.width, GamesView.height - 45);
+        gameList.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        VBox vbox =  new VBox(top, bottom);
-
-        this.getChildren().add(vbox);
+        this.setTop(top);
+        this.setCenter(gameList);
     }
 
 }

@@ -25,11 +25,13 @@ import dk.dtu.compute.se.pisd.roborally.controller.AppController;
 import dk.dtu.compute.se.pisd.roborally.controller.GameController;
 import dk.dtu.compute.se.pisd.roborally.online.controller.OnlineController;
 import dk.dtu.compute.se.pisd.roborally.online.view.GameSelection;
+import dk.dtu.compute.se.pisd.roborally.online.view.GamesView;
 import dk.dtu.compute.se.pisd.roborally.view.BoardView;
 import dk.dtu.compute.se.pisd.roborally.view.RoboRallyMenuBar;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -62,8 +64,10 @@ public class RoboRally extends Application {
         // when the user creates a new game or loads a game
         RoboRallyMenuBar menuBar = new RoboRallyMenuBar(appController);
         boardRoot = new BorderPane();
+        boardRoot.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         VBox vbox = new VBox(menuBar, boardRoot);
         vbox.setMinWidth(MIN_APP_WIDTH);
+        VBox.setVgrow(boardRoot, Priority.ALWAYS);
         Scene primaryScene = new Scene(vbox);
 
         stage.setScene(primaryScene);
@@ -101,8 +105,8 @@ public class RoboRally extends Application {
             boardRoot.setCenter(gameSelection);
             // width and height should be done in a nicer way
             // and probably with scrollbar in the respective pane (GamesView)
-            stage.setMinWidth(500);
-            stage.setMinHeight(600);
+            stage.setMinWidth(GamesView.width + 20);
+            stage.setMinHeight(GamesView.height + 100);
             stage.setResizable(true);
             stage.sizeToScene();
         } else {
