@@ -236,6 +236,16 @@ public class OnlineController {
             User signedIn = onlineState.getSignedInUser();
             if (signedIn == null || game == null || game.getPlayers() == null) return;
 
+            if (userOwnsGame(game)) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Cannot leave game");
+                alert.setHeaderText("The owner cannot leave their own game.");
+                alert.setContentText("Delete the game instead if you do not want to host it.");
+                alert.setGraphic(null);
+                alert.showAndWait();
+                return;
+            }
+
             for (Player player : game.getPlayers()) {
                 if (player.getUser() != null &&
                         player.getUser().getUid() == signedIn.getUid()) {
@@ -354,7 +364,7 @@ public class OnlineController {
     }
 
     private void readGames(JsonElement response, List<Game> games) {
-        if (response.isArray()) {
+        if (response.isJsonArray()) {
             for (JsonElement gameNode : response.getAsJsonArray()) {
                 games.add(readGame(gameNode));
             }

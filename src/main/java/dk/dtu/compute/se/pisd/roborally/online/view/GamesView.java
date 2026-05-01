@@ -98,7 +98,7 @@ public class GamesView extends GridPane {
                         // probably not needed since joinGame should catch possible exceptions
                     }
                 });
-                if (!onlineController.userInGame(game) || onlineController.userOwnsGame(game)) {
+                if (!onlineController.userInGame(game)) {
                     leaveButton.setDisable(true);
                 } else {
                     leaveButton.setDisable(false);
