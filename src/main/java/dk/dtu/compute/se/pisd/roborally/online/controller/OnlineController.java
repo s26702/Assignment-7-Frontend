@@ -309,9 +309,15 @@ public class OnlineController {
                 if(p.getUser() != null && signedIn.getUid() == p.getUser().getUid()) return;
             }
 
+            Game gameReference = new Game();
+            gameReference.setUid(game.getUid());
+
+            User userReference = new User();
+            userReference.setUid(signedIn.getUid());
+
             player.setName(signedIn.getName());
-            player.setUser(signedIn);
-            player.setGame(game);
+            player.setUser(userReference);
+            player.setGame(gameReference);
             restClient.post()
                     .uri("player")
                     .body(player)
@@ -319,7 +325,7 @@ public class OnlineController {
                     .toBodilessEntity();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            showInfo("Cannot join game", "You cannot join this game.");
         } finally {
             selectGame();
         }
