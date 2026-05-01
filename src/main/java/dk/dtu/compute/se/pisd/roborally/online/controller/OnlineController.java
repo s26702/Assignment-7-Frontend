@@ -77,15 +77,39 @@ public class OnlineController {
                 if (users != null && !users.isEmpty()) {
                     setOnlineUser(users.get(0));
                 } else {
-                    setOnlineUser(null);
+                    onlineState.setSignedInUser(null);
+                    showInfo("User not found", "user not found");
                 }
 
             } catch (Exception e) {
-                setOnlineUser(null);
+                onlineState.setSignedInUser(null);
+                showInfo("User not found", "user not found");
                 e.printStackTrace();
             }
         } else {
-            setOnlineUser(null);
+            onlineState.setSignedInUser(null);
+            showInfo("User not found", "user not found");
+        }
+    }
+
+    public void signUp(String name) {
+        if (name == null || name.length() < 4) {
+            showInfo("Cannot sign up", "User name must be at least 4 characters");
+            return;
+        }
+
+        try {
+            User user = new User();
+            user.setName(name);
+            User createdUser = restClient.post()
+                    .uri("user")
+                    .body(user)
+                    .retrieve()
+                    .body(User.class);
+            setOnlineUser(createdUser);
+        } catch (Exception e) {
+            showInfo("Cannot sign up", "User already exists");
+            e.printStackTrace();
         }
     }
 
@@ -107,6 +131,17 @@ public class OnlineController {
             alert.showAndWait();
         } else {
             appDialogs.signIn();
+        }
+    }
+
+    public void signUp() {
+        if (appController.isGameRunning()) {
+            showInfo("Game running", "You cannot sign up while a game is running!");
+        } else if (gameSelectionOn) {
+            showInfo("Game selection is active",
+                    "You cannot sign up while a game selection for a signed in user is active!");
+        } else {
+            appDialogs.signUp();
         }
     }
 
@@ -202,8 +237,18 @@ public class OnlineController {
 
             if (game != null) {
 
-                // TODO Assignment 7e: make sure the game is set to the active state
-                //      here and in the backend, so that no new players can sign up.
+                try {
+                    restClient.patch()
+                            .uri("game/game/{id}", game.getUid())
+                            .body(game)
+                            .retrieve()
+                            .toBodilessEntity();
+                    game.setState("ACTIVE");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showInfo("Cannot start game", "The game could not be started.");
+                    return;
+                }
 
                 // Then show the game board and the game (with uid from backend) is then started
                 startGame(game);
@@ -257,7 +302,8 @@ public class OnlineController {
             User signedIn = onlineState.getSignedInUser();
             List<Player> players = game.getPlayers() == null ? List.of() : game.getPlayers();
             if(signedIn == null ||
-                    players.size() +1 > game.getMaxPlayers()) return;
+                    !"SIGNUP".equals(game.getState()) ||
+                    players.size() + 1 > game.getMaxPlayers()) return;
 
             for(Player p: players){
                 if(p.getUser() != null && signedIn.getUid() == p.getUser().getUid()) return;
@@ -289,6 +335,10 @@ public class OnlineController {
         try {
             User signedIn = onlineState.getSignedInUser();
             if (signedIn == null || game == null || game.getPlayers() == null) return;
+            if (!"SIGNUP".equals(game.getState())) {
+                showInfo("Cannot leave game", "The game has already started.");
+                return;
+            }
 
             if (userOwnsGame(game)) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -468,6 +518,7 @@ public class OnlineController {
         game.setName(readString(node, "name"));
         game.setMinPlayers(readInt(node, "minPlayers"));
         game.setMaxPlayers(readInt(node, "maxPlayers"));
+        game.setState(hasValue(node, "state") ? readString(node, "state") : "SIGNUP");
 
         if (hasValue(node, "ownerUid")) {
             User owner = new User();
@@ -530,6 +581,13 @@ public class OnlineController {
 
     private long readLong(JsonObject object, String property) {
         return hasValue(object, property) ? object.get(property).getAsLong() : 0;
+    }
+
+    private void showInfo(String title, String headerText) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.showAndWait();
     }
 
 }

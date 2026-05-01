@@ -52,6 +52,37 @@ public class AppDialogs {
         stage.show();
     }
 
+    public void signUp() {
+        Stage stage = new Stage();
+
+        Text text = new Text("Sign up as a new user for Online RoboRally.");
+        TextField userName = new TextField();
+
+        Button cancel = new Button("Cancel");
+        cancel.setOnAction(e -> stage.close());
+        Button signUp = new Button("Sign up");
+        signUp.setOnAction(
+                e -> {
+                    String name = userName.getText();
+                    if (name.length() >= 4) {
+                        stage.close();
+                        onlineController.signUp(name);
+                    }
+                }
+        );
+        HBox buttons = new HBox(cancel, signUp);
+
+        VBox vbox = new VBox(text, userName, buttons);
+
+        Scene scene = new Scene(vbox);
+        stage.setTitle("Sign Up for Online RoboRally");
+        stage.setScene(scene);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
+        stage.sizeToScene();
+        stage.show();
+    }
+
     // TODO Assignment 7c you might want to implement a dialog for a SingUp or
     //      registering a new user.
     public void createNewGame() {

@@ -29,6 +29,8 @@ public class Game {
 
     private int maxPlayers;
 
+    private String state = "SIGNUP";
+
     private List<Player> players;
 
     private User Owner;
@@ -73,6 +75,14 @@ public class Game {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+    }
+
+    public String getState() {
+        return state == null ? "SIGNUP" : state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     public void setPlayers(List<Player> players) {

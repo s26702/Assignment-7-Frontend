@@ -60,7 +60,8 @@ public class GamesView extends GridPane {
                 Text gameName = new Text(
                         "Game: " + game.getName() +
                                 " (min: " + game.getMinPlayers() +
-                                ", max: " + game.getMaxPlayers() + ")" );
+                                ", max: " + game.getMaxPlayers() +
+                                ", state: " + game.getState() + ")" );
                 gameInfo.getChildren().add(gameName);
 
                 // Add owner information
@@ -93,7 +94,9 @@ public class GamesView extends GridPane {
                         // probably not needed since joinGame should catch possible exceptions
                     }
                 });
-                if (players.size() >= game.getMaxPlayers() || onlineController.userInGame(game)) {
+                if (!"SIGNUP".equals(game.getState()) ||
+                        players.size() >= game.getMaxPlayers() ||
+                        onlineController.userInGame(game)) {
                     joinButton.setDisable(true);
                 } else {
                     joinButton.setDisable(false);
@@ -107,7 +110,7 @@ public class GamesView extends GridPane {
                         // probably not needed since joinGame should catch possible exceptions
                     }
                 });
-                if (!onlineController.userInGame(game)) {
+                if (!"SIGNUP".equals(game.getState()) || !onlineController.userInGame(game)) {
                     leaveButton.setDisable(true);
                 } else {
                     leaveButton.setDisable(false);
@@ -117,7 +120,8 @@ public class GamesView extends GridPane {
                 startButton.setOnAction( e -> onlineController.gameSelected(game) );
                 if (game.getMinPlayers() <= players.size() &&
                         game.getMaxPlayers() >= players.size() &&
-                        onlineController.userInGame(game)) {
+                        "SIGNUP".equals(game.getState()) &&
+                        onlineController.userOwnsGame(game)) {
                     startButton.setDisable(false);
                 } else {
                     startButton.setDisable(true);
