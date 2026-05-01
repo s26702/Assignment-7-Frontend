@@ -240,12 +240,24 @@ public class OnlineController {
             selectGame();
         }
     }
-
+    // TODO Assignment 7d: delete the currently active user as a player
+    //      for the given game (in the backend)
     public void leaveGame(Game game) {
         try {
-            // TODO Assignment 7d: delete the currently active user as a player
-            //      for the given game (in the backend)
+            User signedIn = onlineState.getSignedInUser();
+            if (signedIn == null || game == null || game.getPlayers() == null) return;
 
+            for (Player player : game.getPlayers()) {
+                if (player.getUser() != null &&
+                        player.getUser().getUid() == signedIn.getUid()) {
+
+                    restClient.delete()
+                            .uri("/player/{id}", player.getUid())
+                            .retrieve()
+                            .toBodilessEntity();
+                    break;
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -253,11 +265,23 @@ public class OnlineController {
         }
     }
 
+    // TODO Assignment 7d: delete the given game from the games
+    //      in the backend
     public void deleteGame(Game game) {
         try {
 
+<<<<<<< HEAD
             // TODO Assignment 7d: delete the given game from the games
             //      in the backendZ
+=======
+            if (game == null) return;
+
+            restClient.delete()
+                    .uri("/game/{id}", game.getUid())
+                    .retrieve()
+                    .toBodilessEntity();
+
+>>>>>>> 7be7750acb655b4cb8fe631a9da9fb4b663ca7fa
 
         } catch (Exception e) {
             e.printStackTrace();
