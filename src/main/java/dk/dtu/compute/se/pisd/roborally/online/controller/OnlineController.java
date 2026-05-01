@@ -62,8 +62,6 @@ public class OnlineController {
      * @param name the user name typed by the player
      */
     public void signIn(String name) {
-        // FIXME the 4 below is a bit arbitray and should be a constant defines
-        //       somewhere in the code or a configuration file!
         if (name.length() >= 4) {
             try {
                 List<User> users = restClient.get()
@@ -157,8 +155,6 @@ public class OnlineController {
             List<Game> games = readGames(response);
 
             onlineState.setOpenGames(games);
-            // TODO Assignment 7c/7e: And at some later point, this should only
-            //      return the games open for registration (not started yet).
         } catch (Exception e) {
             onlineState.setOpenGames(null);
             e.printStackTrace();

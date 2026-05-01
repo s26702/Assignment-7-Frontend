@@ -3,7 +3,7 @@
  *  course "Project in Software Development (02362)" held at
  *  DTU Compute at the Technical University of Denmark.
  *
- *  Copyright (C) 2019-2026: Ekkart Kindler, ekki@dtu.dk
+ *  Copyright (C) 2019, 2020: Ekkart Kindler, ekki@dtu.dk
  *
  *  This software is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,15 +43,12 @@ public enum Command {
     FORWARD("Fwd"),
     RIGHT("Turn Right"),
     LEFT("Turn Left"),
-    FAST_FORWARD("Fast Fwd");
+    FAST_FORWARD("Fast Fwd"),
+    BACK("Back"),
+    UTURN("U-turn"),
+    LEFT_OR_RIGHT("Left or Right", LEFT, RIGHT),
+    FAST_OR_FORWARD("Fast or Forward", FAST_FORWARD, FORWARD);
 
-    // TODO A6c: add new literals to this enumeration for the two commands
-    //     BACK and UTURN, and implement the corresponding command in the
-    //     class GameController)
-
-    // TODO A6e: add two new commands  here, which are interactive,
-    //     which means that the player can chose between two options when
-    //     the command is executed.
 
     /**
      * The name shown for this command on the GUI.

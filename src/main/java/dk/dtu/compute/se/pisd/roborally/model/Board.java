@@ -3,7 +3,7 @@
  *  course "Project in Software Development (02362)" held at
  *  DTU Compute at the Technical University of Denmark.
  *
- *  Copyright (C) 2019-2026: Ekkart Kindler, ekki@dtu.dk
+ *  Copyright (C) 2019, 2020: Ekkart Kindler, ekki@dtu.dk
  *
  *  This software is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,9 +59,28 @@ public class Board extends Subject {
 
     private boolean stepMode;
 
-    // TODO A6a: add a moveCounter attribute to this class;
-    //     and add the corresponding getter and setter methods for
-    //     this move counter at an appropriate place in this class.
+    private String statusMessage = "";
+
+    /** Counter for the number of moves in this new game */
+    private int moveCounter = 0;
+    public void IncMovecounter(){
+        moveCounter++;
+    }
+
+
+    /** getter for counter, returns the moves made */
+    public int getMoveCounter() {
+        return moveCounter;
+    }
+
+    /** setter for the counter and gives it a value when a move is made */
+    public void setMoveCounter(int moveCounter) {
+        // only change when necessary
+        if(moveCounter != this.moveCounter) {
+            this.moveCounter = moveCounter;
+            notifyChange();
+        }
+    }
 
     public Board(int width, int height, @NotNull String boardName) {
         this.boardName = boardName;
@@ -180,45 +199,99 @@ public class Board extends Subject {
      * The neighbour is returned only, if it can be reached from the given space
      * (no walls or obstacles in either of the involved spaces); otherwise,
      * null will be returned (this needs to be implemented for Assignment 6c).
-     *
+     * We interpretate the borders of the game to behave like walls.
      * @param space the space for which the neighbour should be computed
      * @param heading the heading of the neighbour
      * @return the space in the given direction; null if there is no (reachable) neighbour
      */
     public Space getNeighbour(@NotNull Space space, @NotNull Heading heading) {
-        // TODO A6c: This implementation needs to be adjusted so that walls on
-        //          spaces (and maybe other obstacles) are taken into account
-        //          (see above JavaDoc comment for this method).
         int x = space.x;
         int y = space.y;
+
         switch (heading) {
-            case SOUTH:
-                y = (y + 1) % height;
-                break;
-            case WEST:
-                x = (x + width - 1) % width;
-                break;
             case NORTH:
-                y = (y + height - 1) % height;
+                y--;
+                if (y < 0) return null;
                 break;
+
+            case SOUTH:
+                y++;
+                if (y >= height) return null;
+                break;
+
+            case WEST:
+                x--;
+                if (x < 0) return null;
+                break;
+
             case EAST:
-                x = (x + 1) % width;
+                x++;
+                if (x >= width) return null;
                 break;
         }
 
         return getSpace(x, y);
     }
 
+    /**
+     * Returns true if a wall blocks the movement of a player.
+     * (no walls in either of the involved spaces); otherwise,
+     * True will be returned if there's a wall blocking the path.
+     *
+     * @param space the space for which the neighbour should be computed
+     * @param heading the heading of the neighbour
+     * @return the space in the given direction; null if there is no (reachable) neighbour
+     */
+    public boolean getNieghborwall(@NotNull Space space, @NotNull Heading heading) {
+        int x = space.x;
+        int y = space.y;
+
+        switch (heading) {
+            case NORTH:
+                Space neighbourN = getSpace(x, y - 1);
+                if (neighbourN != null && neighbourN.getWalls().contains(Heading.SOUTH) || space.getWalls().contains(heading)) {
+                    return true;
+                }
+                break;
+
+            case SOUTH:
+                Space neighbourS = getSpace(x, y + 1);
+                if (neighbourS != null && neighbourS.getWalls().contains(Heading.NORTH)|| space.getWalls().contains(heading)) {
+                    return true;
+                }
+                break;
+
+            case WEST:
+                Space neighbourW = getSpace(x - 1, y);
+                if (neighbourW != null && neighbourW.getWalls().contains(Heading.EAST)|| space.getWalls().contains(heading)) {
+                    return true;
+                }
+                break;
+
+            case EAST:
+                Space neighbourE = getSpace(x + 1, y);
+                if (neighbourE != null && neighbourE.getWalls().contains(Heading.WEST)|| space.getWalls().contains(heading)) {
+                    return true;
+                }
+                break;
+        }
+
+        return false;
+    }
+
+    /** Returns a status message describing the current state of the game */
     public String getStatusMessage() {
-        // this is actually a view aspect, but for making assignment A6a easy for
+        if(getPhase() == Phase.FINISHED) {
+            return "Player " + getCurrentPlayer().getName() + " has won the game!" +
+                    " Number of moves: " +  getMoveCounter();
+        }
+
+        // this is actually a view aspect, but for making assignment V1 easy for
         // the students, this method gives a string representation of the current
         // status of the game
 
-        // TODO A6a: add the move count to the status message of the board
-        // TODO A6c: change the status so that it shows the phase, the current player, and the current register
-        //     and you can remove the move count status message message and the corresponding counter again
-        // TODO A6e: add something to the status message, when a player has won the game
-        return "Player = " + getCurrentPlayer().getName();
-    }
+        return "Player = " + getCurrentPlayer().getName() + ". " +
+                    " Phase = " + getPhase() + ". Current register = " + getStep();
 
+    }
 }

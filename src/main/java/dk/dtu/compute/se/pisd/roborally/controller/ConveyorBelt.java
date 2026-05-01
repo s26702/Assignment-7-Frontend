@@ -3,7 +3,7 @@
  *  course "Project in Software Development (02362)" held at
  *  DTU Compute at the Technical University of Denmark.
  *
- *  Copyright (C) 2019-2026: Ekkart Kindler, ekki@dtu.dk
+ *  Copyright (C) 2019, 2020: Ekkart Kindler, ekki@dtu.dk
  *
  *  This software is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,17 +24,17 @@ package dk.dtu.compute.se.pisd.roborally.controller;
 import dk.dtu.compute.se.pisd.roborally.model.Heading;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
 import org.jetbrains.annotations.NotNull;
+import dk.dtu.compute.se.pisd.roborally.model.Player;
+
 
 /**
- * This class represents a conveyor belt on a space.
+ * Represents a conveyor belt field action on the RoboRally board.
+ *
+ * A conveyor belt automatically moves the player standing on its
+ * associated {@link Space} one step in the configured {@link Heading}.
  *
  * @author Ekkart Kindler, ekki@dtu.dk
- *
  */
-// XXX A6b this class might give you some inspiration for
-//         implementing the class CheckPoint
-// XXX A6d remember to also implement the doAction method for the
-//         class CheckPoint you added in Assignment 6b
 public class ConveyorBelt extends FieldAction {
 
     private Heading heading;
@@ -48,13 +48,15 @@ public class ConveyorBelt extends FieldAction {
     }
 
     /**
-     * Implementation of the action of a conveyor belt.
+     * Implementation of the action of a conveyor belt. Needs to be implemented for A3.
      */
     @Override
     public boolean doAction(@NotNull GameController gameController, @NotNull Space space) {
-        // TODO A6d: needs to be implemented
-        // ...
-
+        Player player = space.getPlayer();
+        if(player != null) {
+            gameController.moveForward(player, heading);
+            return true;
+        }
         return false;
     }
 

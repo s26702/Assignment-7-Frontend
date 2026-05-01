@@ -3,7 +3,7 @@
  *  course "Project in Software Development (02362)" held at
  *  DTU Compute at the Technical University of Denmark.
  *
- *  Copyright (C) 2019-2026: Ekkart Kindler, ekki@dtu.dk
+ *  Copyright (C) 2019, 2020: Ekkart Kindler, ekki@dtu.dk
  *
  *  This software is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,10 +27,18 @@ import org.jetbrains.annotations.NotNull;
 import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
 
 /**
- * ...
+ * Represents a player in the RoboRally game.
+ *
+ * A player belongs to exactly one {@link Board}, has a name, a color,
+ * a current position ({@link Space}), and a facing {@link Heading}.
+ * The player also owns a set of program registers and command cards
+ * used during the programming phase.
+ *
+ * The player tracks how many checkpoints have been reached during the game.
+ * Since this class extends {@link Subject}, observers are notified whenever
+ * important player attributes change.
  *
  * @author Ekkart Kindler, ekki@dtu.dk
- *
  */
 public class Player extends Subject {
 
@@ -44,6 +52,8 @@ public class Player extends Subject {
 
     private Space space;
     private Heading heading = SOUTH;
+
+    private int checkpointsReached = 0;
 
     private CommandCardField[] program;
     private CommandCardField[] cards;
@@ -133,4 +143,22 @@ public class Player extends Subject {
         return cards[i];
     }
 
+    /**
+     * Getter for Checkpoints reached
+     */
+
+    public int getCheckpointsReached(){
+        return checkpointsReached;
+    }
+
+    /**
+     * Setter for Checkpoints reached
+     */
+
+    public void setCheckpointsReached(int checkpointsReached){
+        if(checkpointsReached != this.checkpointsReached) {
+            this.checkpointsReached = checkpointsReached;
+            notifyChange();
+        }
+    }
 }
