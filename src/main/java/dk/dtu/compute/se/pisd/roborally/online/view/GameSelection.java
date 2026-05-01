@@ -15,7 +15,8 @@ public class GameSelection extends BorderPane {
     public GameSelection (OnlineController onlineController) {
         this.onlineController = onlineController;
 
-        this.setPrefSize(GamesView.width,GamesView.height);
+        this.setMinSize(GamesView.width, GamesView.height);
+        this.setPrefSize(GamesView.width, GamesView.height);
 
         Label signedInUser = new Label("You are signed in as " + onlineController.onlineState.getSignedInUser().getName());
 
@@ -50,18 +51,18 @@ public class GameSelection extends BorderPane {
         top.add(close,4, 0);
 
         Pane bottom = new GamesView(onlineController, this);
+        bottom.setMinWidth(GamesView.width - 20);
+        bottom.setPrefWidth(GamesView.width - 20);
+
         ScrollPane gameList = new ScrollPane(bottom);
         gameList.setFitToWidth(true);
         gameList.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         gameList.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        gameList.setPrefViewportHeight(GamesView.height - 50);
-        VBox.setVgrow(gameList, Priority.ALWAYS);
+        gameList.setMinSize(GamesView.width, GamesView.height - 45);
+        gameList.setPrefSize(GamesView.width, GamesView.height - 45);
 
-
-        VBox vbox =  new VBox(top, gameList);
-        vbox.setPrefSize(GamesView.width, GamesView.height);
-
-        this.getChildren().add(vbox);
+        this.setTop(top);
+        this.setCenter(gameList);
     }
 
 }
