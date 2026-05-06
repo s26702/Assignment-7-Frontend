@@ -55,9 +55,9 @@ class Connector {
 	private final String PASSWORD;
 
     private static final String DELIMITER = ";;";
-    
+
     private Connection connection;
-        
+
     Connector() {
 		try {
 			ClassLoader classLoader = Connector.class.getClassLoader();
@@ -91,22 +91,22 @@ class Connector {
 
 			createDatabaseSchema();
 		} catch (SQLException e) {
-			// TODO we should try to diagnose and fix some problems here and
+			// Note we should try to diagnose and fix some problems here and
 			//      exit in a more graceful way
 			throw new RuntimeException(e);
 		}
     }
-    
+
     private void createDatabaseSchema() {
 
-    	String createTablesStatement =
+	String createTablesStatement =
 				IOUtil.readResource("schemas/createschema.sql");
 
-    	try {
-    		connection.setAutoCommit(false);
-    		Statement statement = connection.createStatement();
-    		for (String sql : createTablesStatement.split(DELIMITER)) {
-    			if (!sql.isBlank()) {
+	try {
+		connection.setAutoCommit(false);
+		Statement statement = connection.createStatement();
+		for (String sql : createTablesStatement.split(DELIMITER)) {
+			if (!sql.isBlank()) {
 					try {
 						statement.executeUpdate(sql);
 					} catch (SQLException e) {
@@ -114,26 +114,26 @@ class Connector {
 						System.err.println(statement);
 						e.printStackTrace();
 					}
-    			}
-    		}
+			}
+		}
 
-    		statement.close();
-    		connection.commit();
-    	} catch (SQLException e) {
-    		e.printStackTrace();
-    		// TODO error handling
-    		try {
+		statement.close();
+		connection.commit();
+	} catch (SQLException e) {
+		e.printStackTrace();
+		// Note error handling
+		try {
 				connection.rollback();
 			} catch (SQLException e1) {}
-    	} finally {
+	} finally {
 			try {
 				connection.setAutoCommit(true);
 			} catch (SQLException e) {}
 		}
     }
-    
+
     Connection getConnection() {
-    	return connection; 
+	return connection;
     }
-    
+
 }

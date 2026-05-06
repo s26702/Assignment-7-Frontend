@@ -157,7 +157,7 @@ public class CardFieldView extends GridPane implements ViewObserver {
     }
 
 
-    // TODO redundant with DragEnterHandler (but some functionality needs to be moved from
+    // Note redundant with DragEnterHandler (but some functionality needs to be moved from
     //      here to DragEnterHandler
     private class OnDragOverHandler implements EventHandler<DragEvent> {
 

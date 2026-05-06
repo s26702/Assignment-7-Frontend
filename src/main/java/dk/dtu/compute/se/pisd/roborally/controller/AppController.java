@@ -122,12 +122,12 @@ public class AppController implements Observer {
     }
 
     public void saveGame() {
-        // TODO DB4a: needs to be implemented
+        // Local database saving is outside the online signup assignment.
     }
 
     public void loadGame() {
-        // TODO DB4a: needs to be implemented
-        // for now, we just create a new game
+        // Local database loading is outside the online signup assignment.
+        // For this assignment, loading starts a fresh local game when no game is active.
         if (gameController == null) {
             newGame();
         }

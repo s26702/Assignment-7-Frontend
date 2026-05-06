@@ -116,12 +116,9 @@ public class GamesView extends GridPane {
                     leaveButton.setDisable(false);
                 }
 
-                Button startButton = new Button("Start");
+                Button startButton = new Button("ACTIVE".equals(game.getState()) ? "Play" : "Start");
                 startButton.setOnAction( e -> onlineController.gameSelected(game) );
-                if (game.getMinPlayers() <= players.size() &&
-                        game.getMaxPlayers() >= players.size() &&
-                        "SIGNUP".equals(game.getState()) &&
-                        onlineController.userOwnsGame(game)) {
+                if (onlineController.canStartOrPlay(game)) {
                     startButton.setDisable(false);
                 } else {
                     startButton.setDisable(true);
@@ -147,7 +144,6 @@ public class GamesView extends GridPane {
         } catch (Exception e) {
             Label text = new Label("There was a problem with loading the games.");
             this.add(text, 0,0);
-            e.printStackTrace();
 
         }
     }

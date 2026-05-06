@@ -84,7 +84,6 @@ public class OnlineController {
             } catch (Exception e) {
                 onlineState.setSignedInUser(null);
                 showInfo("User not found", "user not found");
-                e.printStackTrace();
             }
         } else {
             onlineState.setSignedInUser(null);
@@ -109,7 +108,6 @@ public class OnlineController {
             setOnlineUser(createdUser);
         } catch (Exception e) {
             showInfo("Cannot sign up", "User already exists");
-            e.printStackTrace();
         }
     }
 
@@ -200,7 +198,7 @@ public class OnlineController {
             onlineState.setOpenGames(games);
         } catch (Exception e) {
             onlineState.setOpenGames(null);
-            e.printStackTrace();
+            showInfo("Cannot refresh games", "The game list could not be loaded from the backend.");
         }
     }
 
@@ -249,20 +247,23 @@ public class OnlineController {
 
             if (game != null) {
 
-                try {
-                    restClient.patch()
-                            .uri("game/game/{id}", game.getUid())
-                            .body(game)
-                            .retrieve()
-                            .toBodilessEntity();
-                    game.setState("ACTIVE");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    showInfo("Cannot start game", "The game could not be started.");
+                if ("SIGNUP".equals(game.getState())) {
+                    try {
+                        restClient.patch()
+                                .uri("game/game/{id}", game.getUid())
+                                .body(game)
+                                .retrieve()
+                                .toBodilessEntity();
+                        game.setState("ACTIVE");
+                    } catch (Exception e) {
+                        showInfo("Cannot start game", "The game could not be started.");
+                        return;
+                    }
+                } else if (!"ACTIVE".equals(game.getState()) || !userInGame(game)) {
+                    showInfo("Cannot play game", "Only players in an active game can open it.");
                     return;
                 }
 
-                // Then show the game board and the game (with uid from backend) is then started
                 startGame(game);
             }
         }
@@ -286,7 +287,7 @@ public class OnlineController {
                 restClient.post().uri("game/game").body(game).retrieve().toBodilessEntity();
 
             } catch (Exception e) {
-                e.printStackTrace();
+                showInfo("Cannot create game", "The game could not be created.");
             }
 
             refreshGameSelection();
@@ -379,7 +380,7 @@ public class OnlineController {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            showInfo("Cannot leave game", "You cannot leave this game.");
         } finally {
             refreshGameSelection();
         }
@@ -401,7 +402,7 @@ public class OnlineController {
                     .toBodilessEntity();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            showInfo("Cannot delete game", "The game could not be deleted.");
         } finally {
             refreshGameSelection();
         }
@@ -444,12 +445,30 @@ public class OnlineController {
         return owner.getUid() == signedIn.getUid();
     }
 
+    /**
+     * Checks whether the signed-in user can start a signup game or open an active game.
+     *
+     * @param game the game to check
+     * @return {@code true} when the action button should be enabled
+     */
+    public boolean canStartOrPlay(Game game) {
+        if (game == null) return false;
+        List<Player> players = game.getPlayers() == null ? List.of() : game.getPlayers();
+        if ("ACTIVE".equals(game.getState())) {
+            return userInGame(game);
+        }
+        return "SIGNUP".equals(game.getState()) &&
+                userOwnsGame(game) &&
+                game.getMinPlayers() <= players.size() &&
+                game.getMaxPlayers() >= players.size();
+    }
+
+    /**
+     * Opens a local RoboRally board for the selected online game.
+     *
+     * @param game the game whose joined players should be placed on the board
+     */
     private void startGame(Game game) {
-        // TODO Assignment 7e: creation of the board should eventually depend
-        //      on the board provided by the Game information.
-        //      And every user who had joined the game should be able to start
-        //      it in their client (individually -- no interactive gameplay
-        //      required for Assignment 7)!
         Board board = new Board(8,8);
         GameController gameController = new GameController(board);
         int i = 0;
@@ -472,18 +491,12 @@ public class OnlineController {
         appController.roboRally.createBoardView(gameController);
     }
 
-    // TODO still somethings to do here for the real game play.
-    //      - where to save the game controller (here we just forget it); it should probably be
-    //        part of the online state
-    //      - who is owner (controlling game logic) and communicating that to the backend
-    //      - coordinating with the backend and updating the game state accordingly
-    //      - sending users choices to the backend
-    //      - not showing the hidden data (hand cards and not ye played program cards)
-    //        for the other players in view
-    //      - ...
-    //      But this is not part of the course 02324 and its assignment. This assignment is just
-    //      about creating a game and different users joining it (coordinated by the backend).
-
+    /**
+     * Converts the backend game response into client-side game models.
+     *
+     * @param response the JSON response body returned by the backend
+     * @return the games contained in the response
+     */
     private List<Game> readGames(String response) {
         List<Game> games = new ArrayList<>();
         if (response == null || response.isBlank()) {

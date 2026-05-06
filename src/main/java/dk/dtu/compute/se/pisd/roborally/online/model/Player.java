@@ -3,6 +3,9 @@ package dk.dtu.compute.se.pisd.roborally.online.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
+/**
+ * Client-side representation of a user signed up as a player in an online game.
+ */
 @JsonIdentityInfo(
         scope=Player.class,
         generator = ObjectIdGenerators.PropertyGenerator.class,

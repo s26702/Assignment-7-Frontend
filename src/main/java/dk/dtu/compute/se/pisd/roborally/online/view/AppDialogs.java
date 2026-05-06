@@ -4,6 +4,7 @@ import dk.dtu.compute.se.pisd.roborally.online.controller.OnlineController;
 import dk.dtu.compute.se.pisd.roborally.online.model.Game;
 
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -13,14 +14,25 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Provides small modal dialogs for signing in, signing up and creating online games.
+ */
 public class AppDialogs {
 
     private OnlineController onlineController;
 
+    /**
+     * Creates the dialog helper for the online controller.
+     *
+     * @param onlineController the controller receiving the dialog results
+     */
     public AppDialogs(OnlineController onlineController) {
         this.onlineController = onlineController;
     }
 
+    /**
+     * Opens the sign-in dialog and submits the entered name to the backend lookup.
+     */
     public void signIn() {
         Stage stage = new Stage();
 
@@ -52,6 +64,9 @@ public class AppDialogs {
         stage.show();
     }
 
+    /**
+     * Opens the sign-up dialog and submits the entered name as a new backend user.
+     */
     public void signUp() {
         Stage stage = new Stage();
 
@@ -83,8 +98,9 @@ public class AppDialogs {
         stage.show();
     }
 
-    // TODO Assignment 7c you might want to implement a dialog for a SingUp or
-    //      registering a new user.
+    /**
+     * Opens the new-game dialog and sends the configured game to the online controller.
+     */
     public void createNewGame() {
         Stage stage = new Stage();
 
@@ -109,13 +125,15 @@ public class AppDialogs {
                     try {
                         Game game = new Game();
                         game.setName(gameName.getText());
-                        // TODO needs clean up!!
                         game.setMinPlayers(Integer.parseInt(min.getText()));
                         game.setMaxPlayers(Integer.parseInt(max.getText()));
                         onlineController.createGame(game);
                         stage.close();
                     } catch (Exception exception) {
-                        //  TODO better error handling here
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Invalid game");
+                        alert.setHeaderText("Enter a game name and valid player numbers.");
+                        alert.showAndWait();
                     }
                 }
         );

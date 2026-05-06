@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.util.List;
 
+/**
+ * Client-side representation of a backend user.
+ */
 @JsonIdentityInfo(
         scope=User.class,
         generator = ObjectIdGenerators.PropertyGenerator.class,

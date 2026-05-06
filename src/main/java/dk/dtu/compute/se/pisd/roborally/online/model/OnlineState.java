@@ -2,6 +2,9 @@ package dk.dtu.compute.se.pisd.roborally.online.model;
 
 import java.util.List;
 
+/**
+ * Stores the currently signed-in user and the latest online game list.
+ */
 public class OnlineState {
 
     private User signedInUser;

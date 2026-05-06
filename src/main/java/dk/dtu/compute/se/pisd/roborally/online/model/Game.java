@@ -15,6 +15,9 @@ import java.util.List;
     in JSON (in the worst case the complete database is following suit).
  */
 
+/**
+ * Client-side representation of an online game returned by the backend.
+ */
 @JsonIdentityInfo(
         scope=Game.class,
         generator = ObjectIdGenerators.PropertyGenerator.class,
@@ -34,12 +37,6 @@ public class Game {
     private List<Player> players;
 
     private User Owner;
-
-    // TODO There could be more attributes here, kie
-    //      in which state is the sign up for the game, did
-    //      the game started or finish (after the game started
-    //      you might not want new players coming in etc.)
-    //      See analogous classes in client.
 
     public long getUid() {
         return uid;
