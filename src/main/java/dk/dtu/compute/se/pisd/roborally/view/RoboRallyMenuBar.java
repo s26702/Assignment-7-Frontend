@@ -49,8 +49,6 @@ public class RoboRallyMenuBar extends MenuBar {
 
     private MenuItem signIn;
 
-    private MenuItem server;
-
     private MenuItem signUp;
 
     private MenuItem signOut;
@@ -82,10 +80,6 @@ public class RoboRallyMenuBar extends MenuBar {
         controlMenu.getItems().add(loadGame);
 
         controlMenu.getItems().add(new SeparatorMenuItem());
-
-        server = new MenuItem("Online Server");
-        server.setOnAction(e -> this.appController.configureBackend());
-        controlMenu.getItems().add(server);
 
         signIn = new MenuItem("Sign In");
         signIn.setOnAction(e -> this.appController.signIn());

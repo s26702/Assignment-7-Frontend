@@ -28,7 +28,7 @@ public class GameSelection extends BorderPane {
         createGame.setMinHeight(30);
 
         Button refresh = new Button("Refresh");
-        refresh.setOnAction((e) -> onlineController.refreshGameSelection());
+        refresh.setOnAction((e) -> refreshGames());
         // also here, this is a quick hack
         refresh.setMinWidth(50);
         refresh.setMinHeight(30);
@@ -51,6 +51,16 @@ public class GameSelection extends BorderPane {
         top.add(refresh, 2,0);
         top.add(close,4, 0);
 
+        this.setTop(top);
+        setGamesView();
+    }
+
+    private void refreshGames() {
+        onlineController.refreshGames();
+        setGamesView();
+    }
+
+    private void setGamesView() {
         Pane bottom = new GamesView(onlineController, this);
         bottom.setMinWidth(GamesView.width - 20);
         bottom.setPrefWidth(GamesView.width - 20);
@@ -63,7 +73,6 @@ public class GameSelection extends BorderPane {
         gameList.setPrefSize(GamesView.width, GamesView.height - 45);
         gameList.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        this.setTop(top);
         this.setCenter(gameList);
     }
 
