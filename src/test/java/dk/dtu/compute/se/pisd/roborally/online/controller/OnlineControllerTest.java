@@ -1,5 +1,6 @@
 package dk.dtu.compute.se.pisd.roborally.online.controller;
 
+import dk.dtu.compute.se.pisd.roborally.RoboRally;
 import dk.dtu.compute.se.pisd.roborally.controller.AppController;
 import dk.dtu.compute.se.pisd.roborally.online.model.Game;
 import dk.dtu.compute.se.pisd.roborally.online.model.Player;
@@ -59,7 +60,7 @@ class OnlineControllerTest {
     }
 
     private OnlineController controllerSignedInAs(User user) {
-        OnlineController controller = new OnlineController(new AppController(null));
+        OnlineController controller = new OnlineController(new AppController(new RoboRally()));
         controller.onlineState.setSignedInUser(user);
         return controller;
     }
