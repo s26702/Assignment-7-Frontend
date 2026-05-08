@@ -63,6 +63,6 @@ class GameControllerTest {
     }
     */
 
-    // TODO and there should be more tests added for the different assignments eventually
+    // More tests can be added for the different assignments eventually.
 
 }
