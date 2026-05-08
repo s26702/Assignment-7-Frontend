@@ -160,6 +160,10 @@ public class AppController implements Observer {
         getOnlineController().signIn();
     }
 
+    public void configureBackend() {
+        getOnlineController().configureBackend();
+    }
+
     public void signOut() {
         getOnlineController().signOut();
     }

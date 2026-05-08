@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -57,6 +58,15 @@ class OnlineControllerTest {
         notReady.setPlayers(List.of(player(20, user(1, "Owner"), notReady)));
 
         assertFalse(controller.canStartOrPlay(notReady));
+    }
+
+    @Test
+    void setBackendUrlAcceptsPlainLanAddress() {
+        OnlineController controller = controllerSignedInAs(user(1, "Lucas"));
+
+        controller.setBackendUrl("192.168.1.20:8080");
+
+        assertEquals("http://192.168.1.20:8080/roborally/", controller.getBackendUrl());
     }
 
     private OnlineController controllerSignedInAs(User user) {

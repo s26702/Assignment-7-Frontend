@@ -34,9 +34,11 @@ public class OnlineController {
     /**
      * The root URL of the backend for all the REST services.
      */
-    public final String ROBORALLY_BACKEND_URL = System.getProperty(
+    public static final String DEFAULT_ROBORALLY_BACKEND_URL = System.getProperty(
             "roborally.backend.url",
             "http://localhost:8080/roborally/");
+
+    private String roborallyBackendUrl;
 
     /**
      * The RestClient that can be used throughout all functions of this OnlineController
@@ -52,10 +54,56 @@ public class OnlineController {
     public OnlineController(AppController appController) {
         this.appController = appController;
         this.onlineState = new OnlineState();
-        restClient = RestClient.builder().
-                baseUrl(ROBORALLY_BACKEND_URL).
-                build();
+        setBackendUrl(DEFAULT_ROBORALLY_BACKEND_URL);
         this.appDialogs = new AppDialogs(this);
+    }
+
+    /**
+     * Returns the backend URL currently used by this client.
+     *
+     * @return the configured backend root URL
+     */
+    public String getBackendUrl() {
+        return roborallyBackendUrl;
+    }
+
+    /**
+     * Updates the backend URL and rebuilds the REST client.
+     *
+     * @param backendUrl the backend root URL or host address
+     */
+    public void setBackendUrl(String backendUrl) {
+        this.roborallyBackendUrl = normalizeBackendUrl(backendUrl);
+        this.restClient = RestClient.builder()
+                .baseUrl(this.roborallyBackendUrl)
+                .build();
+    }
+
+    /**
+     * Opens a dialog where the user can point this client to a shared backend.
+     */
+    public void configureBackend() {
+        if (gameSelectionOn) {
+            showInfo("Game selection is active", "Close the online game selection before changing server.");
+            return;
+        }
+        appDialogs.configureBackend();
+    }
+
+    private String normalizeBackendUrl(String backendUrl) {
+        String url = backendUrl == null || backendUrl.isBlank()
+                ? "http://localhost:8080/roborally/"
+                : backendUrl.trim();
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "http://" + url;
+        }
+        while (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        if (!url.endsWith("/roborally")) {
+            url = url + "/roborally";
+        }
+        return url + "/";
     }
 
     /**
@@ -198,7 +246,8 @@ public class OnlineController {
             onlineState.setOpenGames(games);
         } catch (Exception e) {
             onlineState.setOpenGames(null);
-            showInfo("Cannot refresh games", "The game list could not be loaded from the backend.");
+            showInfo("Cannot refresh games",
+                    "The game list could not be loaded from " + roborallyBackendUrl);
         }
     }
 

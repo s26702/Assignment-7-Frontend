@@ -99,6 +99,38 @@ public class AppDialogs {
     }
 
     /**
+     * Opens the dialog for choosing which backend server this client uses.
+     */
+    public void configureBackend() {
+        Stage stage = new Stage();
+
+        Text text = new Text("Server address for Online RoboRally.");
+        TextField backendUrl = new TextField(onlineController.getBackendUrl());
+        backendUrl.setPrefColumnCount(32);
+
+        Button cancel = new Button("Cancel");
+        cancel.setOnAction(e -> stage.close());
+        Button save = new Button("Save");
+        save.setOnAction(
+                e -> {
+                    onlineController.setBackendUrl(backendUrl.getText());
+                    stage.close();
+                }
+        );
+        HBox buttons = new HBox(cancel, save);
+
+        VBox vbox = new VBox(text, backendUrl, buttons);
+
+        Scene scene = new Scene(vbox);
+        stage.setTitle("Online Server");
+        stage.setScene(scene);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
+        stage.sizeToScene();
+        stage.show();
+    }
+
+    /**
      * Opens the new-game dialog and sends the configured game to the online controller.
      */
     public void createNewGame() {
